@@ -6,7 +6,7 @@ async function run() {
     const activitiesPerInstrument = {};
 
     // set statement csv
-    await readStatement('./statements/LightyearStatement-2021-06-22_2022-04-13.csv', row => {
+    await readStatement('./statements/LightyearStatement-2021-06-22_2021-12-31.csv', row => {
         if ((row[3] != 'Buy' && row[3] != 'Sell') || row[2] == null) {
             return;
         }
@@ -29,6 +29,8 @@ async function run() {
     let finalPnl = 0;
     let finalTaxes = 0;
     const sells = [];
+    // const symbol = '$'
+    const symbol = '€'
 
     Object.keys(activitiesPerInstrument).forEach(key => {
         const buys = [];
@@ -38,8 +40,7 @@ async function run() {
             const rateObject = rates.filter(rate => rate.date == date)[0];
 
             // let usdToEurRate = 1
-            // const symbol = '$'
-            const symbol = '€'
+
 
             // rates are in usd-eur-rates.js and are manually taken from the ecb
             // rates for 2022 aren't added yet, so if you want to calculate 2022
@@ -107,7 +108,7 @@ async function run() {
 
                 sells.push({
                     date: date,
-                    string: `${date}: Sold ${activity.quantity} shares for ${symbol}${activity.price.toFixed(3)} of ${activity.symbol} (average buying price: ${symbol}${buyingPrice.toFixed(3)} -- selling price: ${symbol}${(activity.price / activity.quantity).toFixed(3)} pnl: ${pnl})`
+                    string: `${date}: Sold ${activity.quantity} shares for ${symbol}${activity.price.toFixed(3)} of ${activity.symbol}, bought for ${symbol}${(buyingPrice * activity.quantity).toFixed(3)} (average buying price: ${symbol}${buyingPrice.toFixed(3)} -- selling price: ${symbol}${(activity.price / activity.quantity).toFixed(3)} pnl: ${pnl})`
                 })
 
                 finalPnl += (activity.price - (activity.quantity * buyingPrice));
