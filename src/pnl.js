@@ -5,6 +5,7 @@ const readStatement = require('./statement-reader');
 async function run() {
     const activitiesPerInstrument = {};
 
+    // set statement csv
     await readStatement('./statements/LightyearStatement-2021-06-22_2022-04-13.csv', row => {
         if ((row[3] != 'Buy' && row[3] != 'Sell') || row[2] == null) {
             return;
@@ -28,31 +29,33 @@ async function run() {
     let finalPnl = 0;
     let finalTaxes = 0;
     const sells = [];
-    const symbol = '$'
-    // const symbol = '€'
 
     Object.keys(activitiesPerInstrument).forEach(key => {
         const buys = [];
 
         activitiesPerInstrument[key].forEach(activity => {
-            // if (key != 'COST') {
-            //     return;
-            // }
-
             const date = activity.date.substring(0,10);
             const rateObject = rates.filter(rate => rate.date == date)[0];
 
-            let usdToEurRate = 1
-            // if (rateObject) {
-            //     usdToEurRate = 1 / rateObject.rate;
-            // } else {
-                // console.log(`No rate found on date ${date}`)
-            // }
+            // let usdToEurRate = 1
+            // const symbol = '$'
+            const symbol = '€'
+
+            // rates are in usd-eur-rates.js and are manually taken from the ecb
+            // rates for 2022 aren't added yet, so if you want to calculate 2022
+            // data for fun, comment out this part and set usdToEurRate to 1 (above)
+            // also change the reporting symbol if you want it to look correctly
+            if (rateObject) {
+                usdToEurRate = 1 / rateObject.rate;
+            } else {
+                console.log(`No rate found on date ${date}`)
+            }
 
             activity.price = activity.price * usdToEurRate;
 
             if (activity.side == 'Buy') {
-                console.log(`${date}: Bought ${activity.quantity} shares for ${symbol}${(activity.price).toFixed(3)} of ${activity.symbol} (${symbol}${(activity.price / activity.quantity).toFixed(3)} price per share)`);
+                // uncomment if you want to
+                // console.log(`${date}: Bought ${activity.quantity} shares for ${symbol}${(activity.price).toFixed(3)} of ${activity.symbol} (${symbol}${(activity.price / activity.quantity).toFixed(3)} price per share)`);
 
                 buys.push({
                     quantity: activity.quantity,
@@ -101,7 +104,6 @@ async function run() {
                 }
 
                 const pnl = (activity.price - (activity.quantity * buyingPrice)).toFixed(3);
-                // console.log(`${date}: Sold ${activity.quantity} shares for ${symbol}${activity.price.toFixed(3)} of ${activity.symbol} (average buying price: ${symbol}${buyingPrice.toFixed(3)} -- selling price: ${symbol}${(activity.price / activity.quantity).toFixed(3)} pnl: ${pnl})`);
 
                 sells.push({
                     date: date,
